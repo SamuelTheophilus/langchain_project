@@ -1,7 +1,8 @@
+import os
 import chainlit as cl
 import openai 
-import os
 from dotenv import load_dotenv
+from langchain import PromptTemplate, OpenAI, LLMChain
 
 # Load Environment Variables
 load_dotenv()
@@ -10,14 +11,24 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
+template = """
+Question: {question}
+Answer: let's think step by step
+"""
+
+@cl.on_chat_start
+def main():
+    prompt = PromptTemplate(template = template, input_variables=["question"])
+    llm_chain = LLMChain(
+        llm= OpenAI(temperature=0.9, streaming = True),
+        prompt= prompt,
+        verbose= True
+    )
+
+    cl.user_session.set("llm_chain", llm_chain)
+
 @cl.on_message
 async def main(message : str):
-    response = openai.ChatCompletion.create(
-        model = "gpt-3.5-turbo",
-        messages = [
-            {"role":"assistant", "content":"you are a helpful assistant"},
-                    {"role":"user", "content":message}
-                    ],
-        temperature = 0.3,
-    )
-    await cl.Message(content = response['choices'][0]['message']['content']).send()
+    llm_chain = cl.user_session.get("llm_chain")
+    response = await llm_chain.acall(message, callbacks = [cl.AsyncLangchainCallbackHandler()])
+    await cl.Message(response["text"]).send()

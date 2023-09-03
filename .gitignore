@@ -2,3 +2,6 @@ env
 .chainlit
 chainlit.md
 .env
+intro.py
+langchain_integration.py
+__pycache__
