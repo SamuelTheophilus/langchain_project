@@ -31,7 +31,7 @@ def process_file(file: AskFileResponse):
     if file.type == "text/plain": Loader = TextLoader
     if file.type == "application/pdf": Loader = PyPDFLoader
 
-    with tempfile.NamedTemporaryFile() as tempfile:
+    with tempfile.NamedTemporaryFile(delete=False) as tempfile:
         tempfile.write(file.content)
         loader = Loader(tempfile.name)
         documents = loader.load()
@@ -56,7 +56,7 @@ async def start():
             content=welcome,
             accept=["text/plain", "application/pdf"],
             max_size_mb= 110,
-            timeout= 100
+            timeout= 10000
         ).send()
     
     file = files[0]
