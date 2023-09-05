@@ -5,3 +5,4 @@ chainlit.md
 intro.py
 langchain_integration.py
 __pycache__
+chroma_db.py
